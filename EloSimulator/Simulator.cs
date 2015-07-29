@@ -38,7 +38,7 @@ namespace EloSimulator
         private static readonly int K = 50;
         //private static readonly double ELO_UPDATE_VALUE = 0.2d;
         private static readonly int NUM_GAMES = 1000;
-        private static readonly int NUM_PLAYERS = 20000;
+        private static readonly int NUM_PLAYERS = 2000;
         private static readonly int NUM_CLOSE_GAME = 4;
         private static readonly bool USE_RANDOM_TEAMS = false;
         //private static readonly int NUM_SIMULTANEOUS_GAMES = 5;
@@ -56,28 +56,34 @@ namespace EloSimulator
             //List<int> p = RandomOrdering<int>( test, 3 );
         }
 
+        /// <summary>
+        /// Run the number of games specified by NUM_GAMES
+        /// </summary>
         public void Run()
         {
             Run( NUM_GAMES );
         }
 
+        /// <summary>
+        /// Run some number of games
+        /// </summary>
+        /// <param name="numGames">The number of games to run</param>
         public void Run( int numGames )
         {
             for ( int count = 0; count < numGames; count++ )
             {
                 List<Tuple<Team, Team>> games = chooseTeamsAll( _players, PLAYERS_PER_TEAM );
                 playGames( games );
-
-                //foreach ( Player p in _players )
-                //{
-                //    if ( p.GetGameCount() > count + 1 )
-                //        Console.WriteLine( "Uh oh!" );
-                //}
             }
 
+            //Save information about the games
             outputGameInfo( numGames );
         }
 
+        /// <summary>
+        /// Save information about the games
+        /// </summary>
+        /// <param name="numGames"></param>
         private void outputGameInfo( int numGames )
         {
             _numGamesPlayed += numGames;
@@ -98,6 +104,10 @@ namespace EloSimulator
             Console.WriteLine( "Played " + _numGamesPlayed + " games" );
         }
 
+        /// <summary>
+        /// Run some games at once so that each player is only in one game at a time
+        /// </summary>
+        /// <param name="numGames"></param>
         public void RunOnly( int numGames )
         {
             //List<Player> seedPlayers = new List<Player>();
@@ -134,6 +144,11 @@ namespace EloSimulator
             outputGameInfo( numGames );
         }
 
+        /// <summary>
+        /// Run multiple rounds of simultaneous games so that each player is only in one game at a time.
+        /// </summary>
+        /// <param name="numGames">The number of games to run simultaneously</param>
+        /// <param name="numTimes">The number of rounds of simultaneous games</param>
         public void RunOnly( int numGames, int numTimes )
         {
             for ( int i = 0; i < numTimes; i++ )
@@ -162,6 +177,7 @@ namespace EloSimulator
                         game = chooseTeamsByBuckets( players, PLAYERS_PER_TEAM, players[index] );
                     else
                         game = chooseTeams( players, PLAYERS_PER_TEAM, players[index], ELO_RANGE );
+                    
                     //game = chooseTeamsLoosely( _players, PLAYERS_PER_TEAM, t[count] );
 
                     if ( game != null )
@@ -180,7 +196,6 @@ namespace EloSimulator
                             index++;
                     }
 
-
                     count++;
                     //games.Add( chooseTeams( _players, PLAYERS_PER_TEAM, p ) );
                 }
@@ -191,17 +206,26 @@ namespace EloSimulator
             outputGameInfo( numGames * numTimes );
         }
 
+        /// <summary>
+        /// Create some players
+        /// </summary>
+        /// <param name="numPlayers">The number of players to create</param>
         private void initializePlayers( int numPlayers )
         {
             for ( int count = 0; count < numPlayers; count++ )
             {
                 Player p = new Player( count );
+                //Assign a real Elo for the player to represent their actual skill
                 p.RealElo = (int)Math.Round( sampleNormalDistribution() );
 
                 _players.Add( p );
             }
         }
 
+        /// <summary>
+        /// Get a number from a normal distribution
+        /// </summary>
+        /// <returns></returns>
         private double sampleNormalDistribution()
         {
             double u1 = r.NextDouble(); //these are uniform(0,1) random doubles
@@ -222,6 +246,12 @@ namespace EloSimulator
             return randNormal;
         }
 
+        /// <summary>
+        /// Assign as many players into teams as possible
+        /// </summary>
+        /// <param name="players">Players from which to create matches</param>
+        /// <param name="playersPerTeam">Number of players on each team</param>
+        /// <returns></returns>
         private List<Tuple<Team, Team>> chooseTeamsAll( List<Player> players, int playersPerTeam )
         {
             List<Tuple<Team, Team>> games = new List<Tuple<Team, Team>>();
@@ -270,16 +300,30 @@ namespace EloSimulator
             return games;
         }
 
+        /// <summary>
+        /// Simulate the games and update Elo scores for the players in the games
+        /// </summary>
+        /// <param name="games">Games to play</param>
         private void playGames( List<Tuple<Team, Team>> games )
         {
             //Parallel.ForEach( games, x => { bool winner = decideWinner( x ); updateElos( x, winner ); } );
+
+            //Play the games
             foreach ( Tuple<Team, Team> game in games )
             {
+                //Decide a winner
                 bool winner = decideWinner( game );
+                //Update the players' Elos
                 updateElos( game, winner );
             }
         }
 
+        /// <summary>
+        /// Choose the teams based upon the available player with the highest Elo
+        /// </summary>
+        /// <param name="players"></param>
+        /// <param name="playersPerTeam"></param>
+        /// <returns></returns>
         private Tuple<Team, Team> chooseTeamsFromTopPlayer( List<Player> players, int playersPerTeam )
         {
             //Tuple<Team, Team> game=new Tuple<Team,Team>(
@@ -287,6 +331,14 @@ namespace EloSimulator
             return chooseTeams( players, playersPerTeam, topPlayer, ELO_RANGE );
         }
 
+        /// <summary>
+        /// Choose the teams based upon a seed player
+        /// </summary>
+        /// <param name="players"></param>
+        /// <param name="playersPerTeam"></param>
+        /// <param name="seed"></param>
+        /// <param name="eloRange"></param>
+        /// <returns></returns>
         private Tuple<Team, Team> chooseTeams( List<Player> players, int playersPerTeam, Player seed, int eloRange )
         {
             int max = 0;
@@ -318,14 +370,18 @@ namespace EloSimulator
                 possible.Add( seed );
             }
 
+            //Check if there are enough players to make a match
             if ( possible.Count >= 2 * playersPerTeam )
             {
+                //Enough players
                 possible.Remove( seed );
 
+                //Divide the players into two teams
                 return dividePlayers( possible, playersPerTeam, seed );
             }
             else
             {
+                //Not enough players, expand the Elo range
                 if ( eloRange < MAX_ELO - MIN_ELO )
                     return chooseTeams( players, playersPerTeam, seed, eloRange * 2 );
             }
@@ -333,6 +389,13 @@ namespace EloSimulator
             return null;
         }
 
+        /// <summary>
+        /// Choose teams based upon Elo scores, but allowing for a greater range of scores per team
+        /// </summary>
+        /// <param name="players"></param>
+        /// <param name="playersPerTeam"></param>
+        /// <param name="seed"></param>
+        /// <returns></returns>
         private Tuple<Team, Team> chooseTeamsLoosely( List<Player> players, int playersPerTeam, Player seed )
         {
             List<Player> possible = findPossiblePlayers( players, seed.GetElo(), ELO_RANGE );
@@ -352,6 +415,13 @@ namespace EloSimulator
             return null;
         }
 
+        /// <summary>
+        /// Choose teams based upon placement into Elo buckets
+        /// </summary>
+        /// <param name="players"></param>
+        /// <param name="playersPerTeam"></param>
+        /// <param name="seed"></param>
+        /// <returns></returns>
         private Tuple<Team, Team> chooseTeamsByBuckets( List<Player> players, int playersPerTeam, Player seed )
         {
             List<Player> possible = findPossiblePlayers( getSubset( players, NUM_PLAYERS_ONLINE_AT_ONCE ), seed.GetElo(), ELO_RANGE );
@@ -369,6 +439,12 @@ namespace EloSimulator
             return null;
         }
 
+        /// <summary>
+        /// Choose teams through random assignment
+        /// </summary>
+        /// <param name="players"></param>
+        /// <param name="playersPerTeam"></param>
+        /// <returns></returns>
         private Tuple<Team, Team> chooseTeamsRandomly( List<Player> players, int playersPerTeam )
         {
             if ( players.Count >= 2 * playersPerTeam )
@@ -395,6 +471,11 @@ namespace EloSimulator
             return null;
         }
 
+        /// <summary>
+        /// Find the player with the highest Elo
+        /// </summary>
+        /// <param name="players"></param>
+        /// <returns></returns>
         private Player findTopPlayer( List<Player> players )
         {
             //players.Sort( ( p1, p2 ) => p1.getElo().CompareTo( p2.getElo() ) );
@@ -413,6 +494,11 @@ namespace EloSimulator
             return m;
         }
 
+        /// <summary>
+        /// Find the player with the lowest Elo
+        /// </summary>
+        /// <param name="players"></param>
+        /// <returns></returns>
         private Player findBottomPlayer( List<Player> players )
         {
             int min = int.MaxValue;
@@ -430,6 +516,13 @@ namespace EloSimulator
             return m;
         }
 
+        /// <summary>
+        /// Find players that fit within the min and max Elo scores
+        /// </summary>
+        /// <param name="players"></param>
+        /// <param name="maxElo"></param>
+        /// <param name="eloRange"></param>
+        /// <returns></returns>
         private List<Player> findPossiblePlayers( List<Player> players, double maxElo, int eloRange )
         {
             List<Player> possible = players.FindAll( x => x.GetElo() <= maxElo && x.GetElo() >= maxElo - eloRange );
@@ -437,6 +530,13 @@ namespace EloSimulator
             return possible;//.Distinct().ToList();
         }
 
+        /// <summary>
+        /// Divide players into two teams
+        /// </summary>
+        /// <param name="players"></param>
+        /// <param name="playersPerTeam"></param>
+        /// <param name="seed"></param>
+        /// <returns></returns>
         private Tuple<Team, Team> dividePlayers( List<Player> players, int playersPerTeam, Player seed )
         {
             //if ( players.Count > 2 * PLAYERS_PER_TEAM )
@@ -462,6 +562,14 @@ namespace EloSimulator
             return new Tuple<Team, Team>( a, b );
         }
 
+        /// <summary>
+        /// Divide players into two teams with some players on each team having guaranteed close Elo scores, the rest assigned based upon total team Elo
+        /// </summary>
+        /// <param name="players"></param>
+        /// <param name="playersPerTeam"></param>
+        /// <param name="seed"></param>
+        /// <param name="numClose"></param>
+        /// <returns></returns>
         private Tuple<Team, Team> dividePlayersLoosely( List<Player> players, int playersPerTeam, Player seed, int numClose )
         {
             players.Sort( ( p1, p2 ) => p2.GetElo().CompareTo( p1.GetElo() ) );
@@ -508,6 +616,13 @@ namespace EloSimulator
             return new Tuple<Team, Team>( a, b );
         }
 
+        /// <summary>
+        /// Divide players into two teams with even players on one team and odd players on the other
+        /// </summary>
+        /// <param name="players"></param>
+        /// <param name="playersPerTeam"></param>
+        /// <param name="seed"></param>
+        /// <returns></returns>
         private Tuple<Team, Team> bucketPlayers( List<Player> players, int playersPerTeam, Player seed )
         {
             Team a = new Team();
@@ -528,6 +643,11 @@ namespace EloSimulator
             return new Tuple<Team, Team>( a, b );
         }
 
+        /// <summary>
+        /// Decide which team wins a match based upon team Elo scores
+        /// </summary>
+        /// <param name="game"></param>
+        /// <returns>True if team 1 one, False if team 2 won</returns>
         private bool decideWinner( Tuple<Team, Team> game )
         {
             //double difference = game.Item1.GetAverageElo() - game.Item2.GetAverageElo();
@@ -542,6 +662,11 @@ namespace EloSimulator
             return result < e;
         }
 
+        /// <summary>
+        /// Update the Elo scores for players
+        /// </summary>
+        /// <param name="game"></param>
+        /// <param name="winner"></param>
         private void updateElos( Tuple<Team, Team> game, bool winner )
         {
             double difference = game.Item1.GetAverageElo() - game.Item2.GetAverageElo();
@@ -574,6 +699,10 @@ namespace EloSimulator
             //p.ChangeElo( p.GetElo() - tempK / Math.Pow( 1 + (double)p.GetGameCount(), ELO_UPDATE_VALUE ) );
         }
 
+        /// <summary>
+        /// Write Elo scores to the console
+        /// </summary>
+        /// <param name="players"></param>
         private void dumpElos( List<Player> players )
         {
             foreach ( Player p in players )
@@ -582,6 +711,11 @@ namespace EloSimulator
             }
         }
 
+        /// <summary>
+        /// Write Elo scores to a file
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="players"></param>
         private void writeElos( String path, List<Player> players )
         {
             using ( TextWriter writer = new StreamWriter( path ) )
@@ -595,6 +729,11 @@ namespace EloSimulator
             }
         }
 
+        /// <summary>
+        /// Write binned Elo scores to a file
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="bins"></param>
         private void writeBins( String path, Dictionary<int, List<Player>> bins )
         {
             using ( TextWriter writer = new StreamWriter( path ) )
@@ -608,6 +747,11 @@ namespace EloSimulator
             }
         }
 
+        /// <summary>
+        /// Write differences in Elo scores between teams to a file
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="differences"></param>
         private void writeEloDifferences( String path, List<Double> differences )
         {
             using ( TextWriter writer = new StreamWriter( path ) )
@@ -621,6 +765,10 @@ namespace EloSimulator
             }
         }
 
+        /// <summary>
+        /// Write some game stats to the console
+        /// </summary>
+        /// <param name="players"></param>
         private void dumpStats( List<Player> players )
         {
             double max = findTopPlayer( players ).GetElo();
@@ -633,6 +781,12 @@ namespace EloSimulator
             Console.WriteLine( "Average number of games played: " + averageNumGames );
         }
 
+        /// <summary>
+        /// Perform Fisher-Yates shuffle on a list
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list"></param>
+        /// <returns></returns>
         public static List<T> RandomOrdering<T>( List<T> list )
         {
             List<T> array = new List<T>();
@@ -649,6 +803,13 @@ namespace EloSimulator
             return array;
         }
 
+        /// <summary>
+        /// Perform Fisher-Yates shuffle on a subset of a list
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list"></param>
+        /// <param name="numSubset"></param>
+        /// <returns></returns>
         public static List<T> RandomOrdering<T>( List<T> list, int numSubset )
         {
             List<T> array = new List<T>();
@@ -670,6 +831,11 @@ namespace EloSimulator
             return array;
         }
 
+        /// <summary>
+        /// Generate a bool value with the specified chance of true
+        /// </summary>
+        /// <param name="chanceOfTrue"></param>
+        /// <returns></returns>
         public static bool RandomBool( int chanceOfTrue )
         {
             int num = r.Next( 100 );
@@ -677,6 +843,14 @@ namespace EloSimulator
             return num < chanceOfTrue;
         }
 
+        /// <summary>
+        /// Divide Elo scores into bins
+        /// </summary>
+        /// <param name="players"></param>
+        /// <param name="binSize"></param>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <returns></returns>
         private Dictionary<int, List<Player>> binElos( List<Player> players, int binSize, int min, int max )
         {
             Dictionary<int, List<Player>> bins = new Dictionary<int, List<Player>>();
@@ -694,6 +868,14 @@ namespace EloSimulator
             return bins;
         }
 
+        /// <summary>
+        /// Determine the bin for the specified score
+        /// </summary>
+        /// <param name="number"></param>
+        /// <param name="binSize"></param>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <returns></returns>
         private int findBin( int number, int binSize, int min, int max )
         {
             if ( min == 0 )
@@ -706,6 +888,12 @@ namespace EloSimulator
             }
         }
 
+        /// <summary>
+        /// Get a random subset of players
+        /// </summary>
+        /// <param name="players"></param>
+        /// <param name="subsetSize"></param>
+        /// <returns></returns>
         private List<Player> getSubset( List<Player> players, int subsetSize )
         {
             List<Player> t = RandomOrdering<Player>( players, subsetSize );

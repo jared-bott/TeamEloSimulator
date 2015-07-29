@@ -30,12 +30,18 @@ namespace EloSimulator
         private static readonly int MIN_ELO = 0;
         private static readonly int MAX_ELO = 2800;
 
+        /// <summary>
+        /// Player ID
+        /// </summary>
         public int ID
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// Player Elo
+        /// </summary>
         public Stack<int> Elo
         {
             get;
@@ -49,6 +55,10 @@ namespace EloSimulator
             ChangeElo( START_ELO );
         }
 
+        /// <summary>
+        /// Get the most recent Elo
+        /// </summary>
+        /// <returns></returns>
         public int GetElo()
         {
             if ( Elo.Count > 0 )
@@ -57,6 +67,10 @@ namespace EloSimulator
                 return int.MinValue;
         }
 
+        /// <summary>
+        /// Change the player's Elo
+        /// </summary>
+        /// <param name="elo"></param>
         public void ChangeElo( int elo )
         {
             if ( elo < MIN_ELO )
@@ -67,11 +81,19 @@ namespace EloSimulator
                 Elo.Push( elo );
         }
 
+        /// <summary>
+        /// Get the number of games played
+        /// </summary>
+        /// <returns></returns>
         public int GetGameCount()
         {
             return Elo.Count - 1;
         }
 
+        /// <summary>
+        /// Get the difference between the player's real Elo and their calculated Elo
+        /// </summary>
+        /// <returns></returns>
         public int GetEloDifference()
         {
             int diff = GetElo() - RealElo;
@@ -79,18 +101,27 @@ namespace EloSimulator
             return diff;
         }
 
+        /// <summary>
+        /// Get the player's real Elo
+        /// </summary>
         public int RealElo
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// Number of games won
+        /// </summary>
         public int Wins
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// Number of games lost
+        /// </summary>
         public int Losses
         {
             get;
