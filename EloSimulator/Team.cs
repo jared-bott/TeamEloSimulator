@@ -26,46 +26,60 @@ namespace EloSimulator
 {
     public class Team
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public Team()
         {
             Players = new List<Player>();
         }
 
+        /// <summary>
+        /// Players on the team
+        /// </summary>
         public List<Player> Players
         {
             get;
             set;
         }
 
+        /// <summary>
+        /// Get the total Elo for the team
+        /// </summary>
+        /// <returns></returns>
         public double GetTeamElo()
         {
-            double elo = 0;
-            elo = Players.Average( x => x.GetElo() );
+            double elo = Players.Sum( x => x.GetElo() );
+            //elo = Players.Average( x => x.GetElo() );
 
             return elo;
         }
 
+        /// <summary>
+        /// Get the average Elo for the team
+        /// </summary>
+        /// <returns></returns>
         public double GetAverageElo()
         {
             return GetTeamElo() / (double)Players.Count;
         }
 
+        /// <summary>
+        /// Get the average real Elo for the team
+        /// </summary>
+        /// <returns></returns>
         public double GetRealAverageElo()
         {
-            return GetRealTeamElo() / (double)Players.Count;
+            return GetRealTotalElo() / (double)Players.Count;
         }
 
+        /// <summary>
+        /// Get the total real Elo for the team
+        /// </summary>
+        /// <returns></returns>
         public double GetRealTotalElo()
         {
             double elo = Players.Sum( x => x.RealElo );
-
-            return elo;
-        }
-
-        private double GetRealTeamElo()
-        {
-            double elo = 0;
-            elo = Players.Average( x => x.RealElo );
 
             return elo;
         }
