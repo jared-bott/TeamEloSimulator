@@ -43,11 +43,28 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TeamChoosers\BucketTeamChooser.cs" />
+    <Compile Include="Extensions\IEnumerableExtensions.cs" />
+    <Compile Include="AllTeamsChoosers\IAllTeamsChooser.cs" />
+    <Compile Include="PlayerFinders\IPlayerFinder.cs" />
+    <Compile Include="SeedChoosers\ISeedChooser.cs" />
+    <Compile Include="TeamChoosers\ITeamChooser.cs" />
+    <Compile Include="TeamDividers\ITeamDivider.cs" />
+    <Compile Include="TeamDividers\LooseTeamDivider.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SeedChoosers\RandomSeedChooser.cs" />
+    <Compile Include="TeamChoosers\RandomTeamChooser.cs" />
+    <Compile Include="TeamChoosers\SeededTeamChooser.cs" />
+    <Compile Include="AllTeamsChoosers\SimpleAllTeamsChooser.cs" />
+    <Compile Include="PlayerFinders\SimplePlayerFinder.cs" />
+    <Compile Include="SeedChoosers\SimpleSeedChooser.cs" />
+    <Compile Include="TeamChoosers\SimpleTeamChooser.cs" />
+    <Compile Include="TeamDividers\SimpleTeamDivider.cs" />
     <Compile Include="Simulator.cs" />
     <Compile Include="Team.cs" />
+    <Compile Include="SeedChoosers\TopSeedChooser.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
