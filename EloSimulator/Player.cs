@@ -24,11 +24,16 @@ using System.Text;
 
 namespace EloSimulator
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class Player
     {
         private static readonly int START_ELO = 1300;
         private static readonly int MIN_ELO = 0;
         private static readonly int MAX_ELO = 2800;
+
+        private int _currentElo = int.MinValue;
 
         /// <summary>
         /// Player ID
@@ -61,10 +66,12 @@ namespace EloSimulator
         /// <returns></returns>
         public int GetElo()
         {
-            if ( Elo.Count > 0 )
-                return Elo.Peek();
-            else
-                return int.MinValue;
+            //if ( Elo.Count > 0 )
+            //    return Elo.Peek();
+            //else
+            //    return int.MinValue;
+
+            return _currentElo;
         }
 
         /// <summary>
@@ -73,12 +80,15 @@ namespace EloSimulator
         /// <param name="elo"></param>
         public void ChangeElo( int elo )
         {
+            int tempElo = elo;
+
             if ( elo < MIN_ELO )
-                Elo.Push( MIN_ELO );
+                tempElo = MIN_ELO;
             else if ( elo > MAX_ELO )
-                Elo.Push( MAX_ELO );
-            else
-                Elo.Push( elo );
+                tempElo = MAX_ELO;
+
+            Elo.Push( tempElo );
+            _currentElo = tempElo;
         }
 
         /// <summary>

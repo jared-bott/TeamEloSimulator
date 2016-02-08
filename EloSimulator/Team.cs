@@ -24,6 +24,9 @@ using System.Text;
 
 namespace EloSimulator
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class Team
     {
         /// <summary>
@@ -50,7 +53,6 @@ namespace EloSimulator
         public double GetTeamElo()
         {
             double elo = Players.Sum( x => x.GetElo() );
-            //elo = Players.Average( x => x.GetElo() );
 
             return elo;
         }
@@ -83,5 +85,13 @@ namespace EloSimulator
 
             return elo;
         }
+    }
+
+    /// <summary>
+    /// Placeholder class for an EmptyTeam that cannot have players
+    /// </summary>
+    public class EmptyTeam : Team
+    {
+        
     }
 }
