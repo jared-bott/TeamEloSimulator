@@ -28,13 +28,21 @@ namespace EloSimulator
     {
         static void Main( string[] args )
         {
-            Simulator s = new Simulator();
+            Random r = new Random();
+            ITeamChooser teamChooser = new SeededTeamChooser( new SimpleTeamDivider(), new SimplePlayerFinder() ) { MaxElo = 2800, MinElo = 0, EloRange = 400 };
+            ISeedChooser seedChooser = new SimpleSeedChooser();
+            Simulator s = new Simulator( teamChooser, new SimpleAllTeamsChooser( teamChooser, seedChooser ) );
+
             ConsoleKeyInfo key = new ConsoleKeyInfo();
+
+            Console.WriteLine( "Press Q to Quit.\n" );
 
             while ( key.Key != ConsoleKey.Q )
             {
-                s.RunOnly( 12, 100000 );
-                //s.Run( 1000 );
+                //Play some games
+                s.RunOnly( 12, 100, seedChooser );
+
+                Console.WriteLine( "Press any key except Q to play more games.\n" );
                 key = Console.ReadKey();
             }
 
